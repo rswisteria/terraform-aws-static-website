@@ -24,15 +24,15 @@ First, copy `aws_static_website.tfvars.sample` to `aws_static_website.tfvars`, t
 |hosted_domain_name|This is the domain name to use the endpoint of CloudFront edge location.|
 |route53_zone_name|This is the Route53 zone name to be added new record for this website. This must ends with dot(.). (cf. `example.com.`)|
 
-You have to create Route 53 Hosted Zone manually. Because you can create multiple websites on same domain, and you can create and destory them individualy. If it is included that configuration of Route 53 Hosted zone, it destroys all domain settings when `terraform destroy` executes. It is very dangerous.
+You have to create Route 53 Hosted Zone manually. Because you can create multiple websites on same domain, and you can create and destroy them individualy. If it is included that configuration of Route 53 Hosted zone, it destroys all domain settings when `terraform destroy` executes. It is very dangerous.
 
-You can check if that's configuration is valid to run follows,
+You can check if that's configuration is valid by running follows,
 
 ```
 terraform plan -var-file=aws_static_website.tfvars
 ```
 
-Then you can create website to run follows,
+Then you can create website by running follows,
 
 ```
 terraform apply -var-file=aws_static_website.tfvars
