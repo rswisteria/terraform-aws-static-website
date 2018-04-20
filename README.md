@@ -2,7 +2,7 @@
 
 [terraform]: https://terraform.io
 [aws]: https://aws.amazon.com/
-[awscli] : https://aws.amazon.com/cli
+[awscli]: https://aws.amazon.com/cli
 
 This repository is the [terraform] setting file for configuring static website with AWS S3, CloudFront, Route53 and Certificate Manager.
 
