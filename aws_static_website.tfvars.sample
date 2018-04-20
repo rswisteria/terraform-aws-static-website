@@ -1,0 +1,5 @@
+awscli_profile     = ""
+region             = ""
+bucket_name        = ""
+hosted_domain_name = ""
+route53_zone_name  = ""
