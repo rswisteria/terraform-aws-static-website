@@ -8,8 +8,8 @@ This repository is the [terraform] setting file for configuring static website w
 
 ## Prerequisite
 
-- terraform
-- awscli
+- [terraform]
+- [awscli]
 - Route 53 zone setting
 
 ## Quickstart
