@@ -27,7 +27,7 @@ resource "aws_s3_bucket" "web_hosting_bucket" {
   website {
     index_document = "index.html"
     error_document = "error.html"
-  }  
+  }
 }
 
 resource "aws_s3_bucket_policy" "web_hosting_bucket" {
@@ -70,10 +70,51 @@ resource "aws_route53_record" "web_certificate_validation" {
   ttl     = 60
 }
 
+data "aws_iam_policy_document" "lambda-assume-role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com", "edgelambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "lambda-edge" {
+  name = "lambda-edge"
+  assume_role_policy = "${data.aws_iam_policy_document.lambda-assume-role.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "basic" {
+  role       = "${aws_iam_role.lambda-edge.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+data "archive_file" "basic_auth" {
+  type        = "zip"
+  source_dir  = "lambda/basic_auth"
+  output_path = "lambda/dst/basic_auth.zip"
+}
+
 resource "aws_acm_certificate_validation" "web_certificate" {
   provider                = "aws.global"
   certificate_arn         = "${aws_acm_certificate.web_certificate.arn}"
   validation_record_fqdns = ["${aws_route53_record.web_certificate_validation.fqdn}"]
+}
+
+resource "aws_lambda_function" "basic_auth" {
+  provider         = "aws.global"
+  filename         = "${data.archive_file.basic_auth.output_path}"
+  function_name    = "basic_auth"
+  role             = "${aws_iam_role.lambda-edge.arn}"
+  handler          = "index.handler"
+  source_code_hash = "${data.archive_file.basic_auth.output_base64sha256}"
+  runtime          = "nodejs8.10"
+
+  publish          = true
+
+  memory_size = 128
+  timeout     = 3
 }
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
@@ -106,8 +147,13 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     forwarded_values {
       query_string = false
       cookies {
-	forward = "none"
+        forward = "none"
       }
+    }
+
+    lambda_function_association {
+      event_type = "viewer-request"
+      lambda_arn = "${aws_lambda_function.basic_auth.qualified_arn}"
     }
 
     viewer_protocol_policy = "redirect-to-https"
